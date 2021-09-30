@@ -1,9 +1,17 @@
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import classes from "./Checkout.module.css"
 
 const isEmpty = (value) => value.trim() === ""
-const isNotFiveChars = (value) => value.trim().length < 5
+const isFiveChars = (value) => value.trim().length === 5
 const Checkout = (props) => {
+  const [formInputsValidity, setFormInputsValidity] = useState({
+    name: true,
+    street: true,
+    city: true,
+    postalCode: true,
+  })
+
+  // TO DO useReducer
   const nameInputRef = useRef()
   const streetInputRef = useRef()
   const postalCodeInputRef = useRef()
@@ -18,25 +26,61 @@ const Checkout = (props) => {
     const enteredCity = cityInputRef.current.value
 
     const enteredNameIsValue = !isEmpty(enteredName)
+    const enteredStreetIsValid = !isEmpty(enteredStreet)
+    const enteredCityIsValid = !isEmpty(enteredCity)
+    const enteredPostalCodeIsValid = isFiveChars(enteredPostalCode)
+
+    setFormInputsValidity({
+      name: enteredNameIsValue,
+      street: enteredStreetIsValid,
+      city: enteredCityIsValid,
+      postalCode: enteredPostalCodeIsValid,
+    })
+
+    const formIsValid =
+      enteredNameIsValue &&
+      enteredStreetIsValid &&
+      enteredCityIsValid &&
+      enteredPostalCodeIsValid
+
+    if (!formIsValid) {
+      return
+    }
+    props.onConfirm({
+      name: enteredName,
+      street: enteredStreet,
+      city: enteredCity,
+      postalCode: enteredPostalCode,
+    })
   }
 
+  const isInvalid = (boolean) =>
+    `${classes.control} ${boolean ? "" : classes.invalid}`
+
+  // TO DO remove duplicate code
   return (
     <form className={classes.form} onSubmit={confirmHandler}>
-      <div className={classes.control}>
+      <div className={isInvalid(formInputsValidity.name)}>
         <label htmlFor="name">Your Name</label>
         <input type="text" id="name" ref={nameInputRef} />
+        {!formInputsValidity.name && <p>Please enter a valid name!</p>}
       </div>
-      <div className={classes.control}>
+      <div className={isInvalid(formInputsValidity.street)}>
         <label htmlFor="street">Street</label>
         <input type="text" id="street" ref={streetInputRef} />
+        {!formInputsValidity.street && <p>Please enter a valid street!</p>}
       </div>
-      <div className={classes.control}>
+      <div className={isInvalid(formInputsValidity.postalCode)}>
         <label htmlFor="postal">Postal Code</label>
         <input type="text" id="postal" ref={postalCodeInputRef} />
+        {!formInputsValidity.postalCode && (
+          <p>Please enter a valid postal code!</p>
+        )}
       </div>
-      <div className={classes.control}>
+      <div className={isInvalid(formInputsValidity.city)}>
         <label htmlFor="city">City</label>
         <input type="text" id="city" ref={cityInputRef} />
+        {!formInputsValidity.city && <p>Please enter a valid city!</p>}
       </div>
       <div className={classes.actions}>
         <button type="button" onClick={props.onCancel}>
